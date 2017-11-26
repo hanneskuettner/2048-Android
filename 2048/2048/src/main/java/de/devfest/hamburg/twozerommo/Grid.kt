@@ -130,20 +130,24 @@ class Grid(sizeX: Int, sizeY: Int) {
     }
 
 
-    fun toMatrix(): Array<IntArray> {
-        val a = Array(field.size) { IntArray(field[0].size) }
+    fun toMatrix(): List<Int> {
+        val a = IntArray(field.size * field[0].size  )
         for (xx in field.indices) {
             for (yy in 0 until field[0].size) {
-                a[xx][yy] = field[xx][yy]!!.value
+                a[xx*field.size+yy] = field[xx][yy]?.value ?: 0
             }
         }
-        return a
+        return a.toList()
     }
 
-    fun fromMatrix(a: Array<IntArray>) {
-        for (xx in a.indices) {
-            for (yy in 0 until a[0].size) {
-                field[xx][yy] = Tile(xx, yy, a[xx][yy])
+    fun fromMatrix(a: List<Int>) {
+        for (xx in field.indices) {
+            for (yy in 0 until field[0].size) {
+                if (a[xx*field.size+yy] == 0) {
+                    field[xx][yy] = null
+                } else {
+                    field[xx][yy] = Tile(xx, yy, a[xx*field.size+yy])
+                }
             }
         }
     }

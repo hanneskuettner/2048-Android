@@ -106,9 +106,7 @@ class MainView(context: Context) : View(context) {
 
         setOnTouchListener(InputListener(this))
 
-        for (i in 0..9) {
-            scoreUpdates.add(ScoreUpdate("Test", i))
-        }
+
 
         game.newGame()
     }
@@ -136,6 +134,7 @@ class MainView(context: Context) : View(context) {
         } else {
             drawWaitingForTurnText(canvas)
         }
+
 
         //Refresh the screen if there is still an animation running
         if (game.aGrid.isAnimationActive) {
@@ -331,6 +330,15 @@ class MainView(context: Context) : View(context) {
     }
 
     private fun drawRemainingTime(canvas: Canvas) {
+        paint.textSize = instructionsTextSize
+        paint.textAlign = Paint.Align.CENTER
+
+        val center = centerText()
+        paint.color = resources.getColor(R.color.text_white)
+        canvas.drawRect(startingX.toFloat(), sYIcons.toFloat(), sXHighScore.toFloat(), (sYIcons - center * 2).toFloat(), paint)
+
+        paint.color = resources.getColor(R.color.text_black)
+        canvas.drawText("%.2fs left".format((System.currentTimeMillis() - game.turnStartTime) / 1000f), (startingX + (sXHighScore - startingX) / 2).toFloat(), (sYIcons - center * 3).toFloat(), paint)
 
     }
 
@@ -361,7 +369,6 @@ class MainView(context: Context) : View(context) {
             val textY = eYAll + rowHeight * i
             if (textY < 0)
                 continue
-            Log.v("test", textY.toString())
             canvas.drawText("+" + score.score.toInt().toString() + " " + score.name, startingX.toFloat(), textY.toFloat(), paint)
         }
     }

@@ -1,12 +1,22 @@
 package de.devfest.hamburg.twozerommo.service
 
-import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.gson.Gson
+
+
+
+
 
 object GameDatabase {
-    var db = FirebaseFirestore.getInstance()
-    var users = db.collection("users")
+    val TAG = "GameDatabase"
+    var firestore = FirebaseFirestore.getInstance()
+    var realDb = FirebaseDatabase.getInstance()
+
+    var users = firestore.collection("users")
+
+    var game = realDb.getReference("game")
+
+
     init {
 
     }

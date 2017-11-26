@@ -4,13 +4,14 @@ import io.reactivex.Observable
 import okhttp3.ResponseBody
 import retrofit2.http.Body
 import retrofit2.http.POST
+import retrofit2.http.Query
 
 interface IGameEndpoint {
     @POST("turnStart/")
-    fun postTurnStart(): Observable<ResponseBody>
+    fun postTurnStart(@Query("userId") userId: String): Observable<ResponseBody>
 
     @POST("move/")
-    fun postMove(@Body move: Move): Observable<ResponseBody>
+    fun postMove(@Body move: Move, @Query("userId") userId: String): Observable<ResponseBody>
 
     @POST("gameOver/")
     fun postGameOver(@Body move: Move): Observable<ResponseBody>

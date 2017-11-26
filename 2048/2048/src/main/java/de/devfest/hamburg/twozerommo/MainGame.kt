@@ -2,11 +2,19 @@ package de.devfest.hamburg.twozerommo
 
 import android.content.Context
 import android.preference.PreferenceManager
-import de.devfest.hamburg.twozerommo.service.GameFunctionsService
-import de.devfest.hamburg.twozerommo.service.Move
+import android.util.Log
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.QuerySnapshot
+import de.devfest.hamburg.twozerommo.service.*
 import java.util.*
 
 class MainGame(private val mContext: Context, private val mView: MainView) {
+    val TAG = "MainGame"
     var gameState = GAME_NORMAL
     var lastGameState = GAME_NORMAL
     private var bufferGameState = GAME_NORMAL
@@ -18,9 +26,12 @@ class MainGame(private val mContext: Context, private val mView: MainView) {
     var score: Long = 0
     private var _highScore: Long = 0
     var lastScore: Long = 0
-    var isUsersTurn = true // TODO set up from firebase database
+    var isUsersTurn = false
     var turnStartTime: Long = 0
     var turnLastMoveIndex = 0
+    var startup: Boolean = false
+    lateinit var user: GameUser
+    val TURN_TIME = 5f
 
     private var bufferScore: Long = 0
 
@@ -38,6 +49,43 @@ class MainGame(private val mContext: Context, private val mView: MainView) {
 
     init {
         endingMaxValue = Math.pow(2.0, (mView.numCellTypes - 1).toDouble()).toInt()
+
+        GameDatabase.game.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                // This method is called once with the initial value and again
+                // whenever data at this location is updated.
+                val state = dataSnapshot.getValue(GameState::class.java)
+                if (state != null) {
+                    if (!isUsersTurn) {
+                        if (!startup) {
+                            move(state.lastMove, true)
+                        }
+                    }
+                } else {
+                    newGame()
+                }
+                startup = false
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                // Failed to read value
+                Log.w(TAG, "Failed to read value.", error.toException())
+            }
+        })
+
+        val auth = FirebaseAuth.getInstance()
+
+        GameDatabase.users.document(auth.currentUser!!.uid).get()
+                .addOnCompleteListener({ document ->
+                    if (document.isSuccessful) {
+                        user = document.result.toObject(GameUser::class.java)
+                    } else {
+                        user = GameUser(auth.currentUser!!.uid, true, auth.currentUser!!.displayName!!, 0)
+                    }
+                    user.active = true
+                    GameDatabase.updateUser(user)
+                })
+
     }
 
     fun newGame() {
@@ -60,12 +108,13 @@ class MainGame(private val mContext: Context, private val mView: MainView) {
         mView.refreshLastTime = true
         mView.resyncTime()
         mView.invalidate()
+        isUsersTurn = true // TODO Remove
     }
 
     internal fun startTurn() {
         isUsersTurn = true
-        turnStartTime = System.nanoTime()
-        GameFunctionsService.startTurn()
+        turnStartTime = System.currentTimeMillis()
+        GameFunctionsService.startTurn(user)
     }
 
     private fun addStartTiles() {
@@ -152,7 +201,7 @@ class MainGame(private val mContext: Context, private val mView: MainView) {
         return gameState == GAME_LOST
     }
 
-    fun move(direction: Int) {
+    fun move(direction: Int, animateOnly: Boolean = false) {
         aGrid.cancelAnimations()
         // 0: up, 1: right, 2: down, 3: left
         if (!isActive) {
@@ -193,11 +242,13 @@ class MainGame(private val mContext: Context, private val mView: MainView) {
                         aGrid.startAnimation(merged.x, merged.y, MERGE_ANIMATION,
                                 SPAWN_ANIMATION_TIME, MOVE_ANIMATION_TIME, null)
 
-                        // Update the score
-                        gainedScore += merged.value
-                        score = score + merged.value
-                        // TODO score update listener
-                        highScore = Math.max(score, highScore)
+                        if (animateOnly) {
+                            // Update the score
+                            gainedScore += merged.value
+                            score = score + merged.value
+                            // TODO score update listener
+                            highScore = Math.max(score, highScore)
+                        }
                     } else {
                         moveTile(tile, positions[0])
                         val extras = intArrayOf(xx, yy, 0)
@@ -211,11 +262,15 @@ class MainGame(private val mContext: Context, private val mView: MainView) {
             }
         }
 
-        if (moved) {
+        if (moved && !animateOnly) {
             saveUndoState()
             addRandomTile()
             checkLose()
-            GameFunctionsService.move(Move(grid!!.toMatrix(), direction, gainedScore, turnLastMoveIndex++))
+
+            GameFunctionsService.move(Move(GameState(grid!!.toMatrix(), direction), gainedScore, turnLastMoveIndex++), user)
+                    ?.subscribe { t ->
+                        Log.d(TAG, t.toString())
+                    }
         }
         mView.resyncTime()
         mView.invalidate()

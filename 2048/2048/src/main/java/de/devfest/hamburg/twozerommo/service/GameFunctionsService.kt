@@ -13,6 +13,9 @@ import okhttp3.ResponseBody
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
+import okhttp3.logging.HttpLoggingInterceptor
+
+
 
 object GameFunctionsService {
     val FIREBASE_FUNCTIONS_URL = "https://us-central1-appfest-hamburg-2017.cloudfunctions.net/"
@@ -21,18 +24,21 @@ object GameFunctionsService {
     private var gameFunctionsEndpoint: IGameEndpoint? = null
 
     fun buildEndpoint(token: String) {
+        val interceptor = HttpLoggingInterceptor()
+        interceptor.level = HttpLoggingInterceptor.Level.BODY
+
         val httpClient = OkHttpClient.Builder()
                 .addInterceptor { chain ->
                     val original = chain.request()
 
                     val request = original.newBuilder()
-                            .header("User-Agent", "Your-App-Name")
-                            .header("Accept", "application/vnd.yourapi.v1.full+json")
+                            .header("Authorization", token)
                             .method(original.method(), original.body())
                             .build()
 
                     chain.proceed(request)
                 }
+                .addInterceptor(interceptor)
                 .build()
 
         retrofit = Retrofit.Builder()
@@ -60,14 +66,14 @@ object GameFunctionsService {
             }
     }
 
-    fun startTurn(): Observable<ResponseBody>? {
-        return gameFunctionsEndpoint?.postTurnStart()
+    fun startTurn(user: GameUser): Observable<ResponseBody>? {
+        return gameFunctionsEndpoint?.postTurnStart(user.uid)
                 ?.subscribeOn(Schedulers.newThread())
                 ?.observeOn(AndroidSchedulers.mainThread())
     }
 
-    fun move(move: Move): Observable<ResponseBody>? {
-        return gameFunctionsEndpoint?.postMove(move)
+    fun move(move: Move, user: GameUser): Observable<ResponseBody>? {
+        return gameFunctionsEndpoint?.postMove(move, user.uid)
             ?.subscribeOn(Schedulers.newThread())
             ?.observeOn(AndroidSchedulers.mainThread())
     }

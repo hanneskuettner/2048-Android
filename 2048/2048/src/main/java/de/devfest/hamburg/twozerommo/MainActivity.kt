@@ -26,8 +26,6 @@ class MainActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         if (auth.currentUser != null) {
             GameFunctionsService.setup()
-
-            GameDatabase.updateUser(GameUser(auth.currentUser!!.uid, true, auth.currentUser!!.displayName!!, 0))
             setupGameUI(savedInstanceState)
         }
         firebaseSignIn()
@@ -51,9 +49,6 @@ class MainActivity : AppCompatActivity() {
             if (resultCode == ResultCodes.OK) {
                 Log.d("FirebaseAuth", "Authenticated user ${auth.currentUser?.displayName} with uid ${auth.currentUser?.uid}")
                 GameFunctionsService.setup()
-
-                GameDatabase.updateUser(GameUser(auth.currentUser!!.uid, true, auth.currentUser!!.displayName!!, 0))
-
                 setupGameUI(null)
             } else {
                 Log.e("FirebaseAuth", "Shit's fucked yo!")
@@ -67,11 +62,6 @@ class MainActivity : AppCompatActivity() {
         val settings = PreferenceManager.getDefaultSharedPreferences(this)
         view.hasSaveState = settings.getBoolean("save_state", false)
 
-        if (savedInstanceState != null) {
-            if (savedInstanceState.getBoolean("hasState")) {
-                load()
-            }
-        }
         setContentView(view)
     }
 
