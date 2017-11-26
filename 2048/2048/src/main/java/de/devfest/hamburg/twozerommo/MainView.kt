@@ -68,27 +68,6 @@ class MainView(context: Context) : View(context) {
 
     data class DrawableCellProps(val drawableRes: Int, val color: Int)
 
-    private val cellRectangleIds: IntArray
-        get() {
-            val cellRectangleIds = IntArray(numCellTypes)
-            cellRectangleIds[0] = R.drawable.cell_rectangle
-            cellRectangleIds[1] = R.drawable.cell_rectangle_2
-            cellRectangleIds[2] = R.drawable.cell_rectangle_4
-            cellRectangleIds[3] = R.drawable.cell_rectangle_8
-            cellRectangleIds[4] = R.drawable.cell_rectangle_16
-            cellRectangleIds[5] = R.drawable.cell_rectangle_32
-            cellRectangleIds[6] = R.drawable.cell_rectangle_64
-            cellRectangleIds[7] = R.drawable.cell_rectangle_128
-            cellRectangleIds[8] = R.drawable.cell_rectangle_256
-            cellRectangleIds[9] = R.drawable.cell_rectangle_512
-            cellRectangleIds[10] = R.drawable.cell_rectangle_1024
-            cellRectangleIds[11] = R.drawable.cell_rectangle_2048
-            for (xx in 12 until cellRectangleIds.size) {
-                cellRectangleIds[xx] = R.drawable.cell_rectangle_4096
-            }
-            return cellRectangleIds
-        }
-
     var cellRectangles: Array<DrawableCellProps> = emptyArray()
 
     init {
@@ -501,7 +480,6 @@ class MainView(context: Context) : View(context) {
 
     private fun createBitmapCells() {
         val resources = resources
-        val cellRectangleIds = cellRectangleIds
         paint.textAlign = Paint.Align.CENTER
         for (xx in 1 until bitmapCell.size) {
             val value = Math.pow(2.0, xx.toDouble()).toInt()
