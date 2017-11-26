@@ -1,10 +1,15 @@
 package de.devfest.hamburg.twozerommo
 
-import android.content.SharedPreferences
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.KeyEvent
+import com.firebase.ui.auth.AuthUI
+import com.firebase.ui.auth.IdpResponse
+import com.firebase.ui.auth.ResultCodes
 import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : AppCompatActivity() {
@@ -20,7 +25,27 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun firebaseSignIn() {
-        // val providers =
+        val providers = mutableListOf<AuthUI.IdpConfig>(AuthUI.IdpConfig.Builder(AuthUI.GOOGLE_PROVIDER).build());
+        startActivityForResult(AuthUI.getInstance()
+                .createSignInIntentBuilder()
+                .setAvailableProviders(providers)
+                .build(),
+                RC_SIGN_IN
+        )
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == RC_SIGN_IN) {
+            val response = IdpResponse.fromResultIntent(data)
+
+            if (resultCode == ResultCodes.OK) {
+                Log.d("FirebaseAuth", "Authenticated user ${auth.currentUser?.displayName} with uid ${auth.currentUser?.uid}")
+                setupGameUI(null)
+            } else {
+                Log.e("FirebaseAuth", "Shit's fucked yo!")
+            }
+        }
     }
 
     private fun setupGameUI(savedInstanceState: Bundle?) {
@@ -75,7 +100,7 @@ class MainActivity : AppCompatActivity() {
         val undoField = view.game.grid?.undoField
         editor.putInt(WIDTH, field?.size ?: 0)
         editor.putInt(HEIGHT, field?.size ?: 0)
-        for (xx in field?.indices ?: IntRange(0,0)) {
+        for (xx in field?.indices ?: IntRange(0, 0)) {
             for (yy in 0 until (field?.get(0)?.size ?: 0)) {
                 if (field!![xx][yy] != null) {
                     editor.putInt(xx.toString() + " " + yy, field[xx][yy]!!.value)
@@ -146,5 +171,6 @@ class MainActivity : AppCompatActivity() {
         private val UNDO_GRID = "undo"
         private val GAME_STATE = "game state"
         private val UNDO_GAME_STATE = "undo game state"
+        private val RC_SIGN_IN = 999
     }
 }
