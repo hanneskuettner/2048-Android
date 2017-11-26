@@ -106,8 +106,6 @@ class MainView(context: Context) : View(context) {
 
         setOnTouchListener(InputListener(this))
 
-
-
         game.newGame()
     }
 

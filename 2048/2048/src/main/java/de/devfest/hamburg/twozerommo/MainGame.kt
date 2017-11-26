@@ -57,9 +57,9 @@ class MainGame(private val mContext: Context, private val mView: MainView) {
                 val state = dataSnapshot.getValue(GameState::class.java)
                 if (state != null) {
                     if (!isUsersTurn) {
-                        if (!startup) {
-                            move(state.lastMove, true)
-                        }
+                        move(state.lastMove, true)
+                    } else if (startup) {
+                        grid?.fromMatrix(state.grid!!)
                     }
                 } else {
                     newGame()
