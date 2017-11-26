@@ -84,6 +84,7 @@ class MainGame(private val mContext: Context, private val mView: MainView) {
                 if (state != null) {
                     if (!isUsersTurn) {
                         move(state.lastMove, true)
+                        grid.fromMatrix(state.grid!!)
                     } else if (startup) {
                         grid.fromMatrix(state.grid!!)
                         mView.invalidate()
