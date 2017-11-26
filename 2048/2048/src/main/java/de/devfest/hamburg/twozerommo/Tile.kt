@@ -1,4 +1,4 @@
-package com.tpcstld.twozerogame
+package de.devfest.hamburg.twozerommo
 
 class Tile : Cell {
     val value: Int

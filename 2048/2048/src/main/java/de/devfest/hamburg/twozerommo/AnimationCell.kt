@@ -1,4 +1,4 @@
-package com.tpcstld.twozerogame
+package de.devfest.hamburg.twozerommo
 
 internal class AnimationCell(x: Int, y: Int, val animationType: Int, private val animationTime: Long, private val delayTime: Long, val extras: IntArray?) : Cell(x, y) {
     private var timeElapsed: Long = 0

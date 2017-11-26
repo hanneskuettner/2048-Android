@@ -1,4 +1,4 @@
-package com.tpcstld.twozerogame
+package de.devfest.hamburg.twozerommo
 
 open class Cell(x: Int, y: Int) {
     var x: Int = 0

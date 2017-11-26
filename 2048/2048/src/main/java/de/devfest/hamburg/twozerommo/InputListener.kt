@@ -1,4 +1,4 @@
-package com.tpcstld.twozerogame
+package de.devfest.hamburg.twozerommo
 
 import android.view.MotionEvent
 import android.view.View

@@ -1,4 +1,4 @@
-package com.tpcstld.twozerogame
+package de.devfest.hamburg.twozerommo
 
 import android.content.SharedPreferences
 import android.os.Bundle

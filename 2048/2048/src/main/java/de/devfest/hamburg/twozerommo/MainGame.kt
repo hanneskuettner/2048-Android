@@ -1,10 +1,8 @@
-package com.tpcstld.twozerogame
+package de.devfest.hamburg.twozerommo
 
 import android.content.Context
 import android.preference.PreferenceManager
-
-import java.util.ArrayList
-import java.util.Collections
+import java.util.*
 
 class MainGame(private val mContext: Context, private val mView: MainView) {
     var gameState = GAME_NORMAL
@@ -19,6 +17,7 @@ class MainGame(private val mContext: Context, private val mView: MainView) {
     private var _highScore: Long = 0
     var lastScore: Long = 0
     var isUsersTurn = true // TODO set up from firebase database
+    var turnStartTime: Long = 0
 
     private var bufferScore: Long = 0
 
@@ -58,6 +57,11 @@ class MainGame(private val mContext: Context, private val mView: MainView) {
         mView.refreshLastTime = true
         mView.resyncTime()
         mView.invalidate()
+    }
+
+    internal fun startTurn() {
+        isUsersTurn = true
+        turnStartTime = System.nanoTime()
     }
 
     private fun addStartTiles() {

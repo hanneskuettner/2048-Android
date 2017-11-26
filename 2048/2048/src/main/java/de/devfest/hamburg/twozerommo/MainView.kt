@@ -1,7 +1,6 @@
-package com.tpcstld.twozerogame
+package de.devfest.hamburg.twozerommo
 
 import android.content.Context
-import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -12,7 +11,6 @@ import android.util.Log
 import android.view.View
 
 import java.util.ArrayList
-import java.util.Collections
 
 class MainView(context: Context) : View(context) {
     val numCellTypes = 21
@@ -40,6 +38,7 @@ class MainView(context: Context) : View(context) {
     private var bodyTextSize: Float = 0.toFloat()
     private var headerTextSize: Float = 0.toFloat()
     private var instructionsTextSize: Float = 0.toFloat()
+    private var logTextSize: Float = 0.toFloat()
     private var gameOverTextSize: Float = 0.toFloat()
     //Layout variables
     private var cellSize = 0
@@ -130,6 +129,12 @@ class MainView(context: Context) : View(context) {
 
         if (!game.canContinue()) {
             drawEndlessText(canvas)
+        }
+
+        if (game.isUsersTurn) {
+            drawRemainingTime(canvas)
+        } else {
+            drawWaitingForTurnText(canvas)
         }
 
         //Refresh the screen if there is still an animation running
@@ -325,10 +330,27 @@ class MainView(context: Context) : View(context) {
         }
     }
 
-    private fun drawScoreLog(canvas: Canvas) {
+    private fun drawRemainingTime(canvas: Canvas) {
+
+    }
+
+    private fun drawWaitingForTurnText(canvas: Canvas) {
         paint.textSize = instructionsTextSize
+        paint.textAlign = Paint.Align.CENTER
+
+        val center = centerText()
+        paint.color = resources.getColor(R.color.text_white)
+        canvas.drawRect(startingX.toFloat(), sYIcons.toFloat(), sXHighScore.toFloat(), (sYIcons - center * 2).toFloat(), paint)
+
+        paint.color = resources.getColor(R.color.text_black)
+        canvas.drawText("Wait for your turn", (startingX + (sXHighScore - startingX) / 2).toFloat(), (sYIcons - center * 3).toFloat(), paint)
+    }
+
+    private fun drawScoreLog(canvas: Canvas) {
+        paint.textSize = logTextSize
         paint.textAlign = Paint.Align.LEFT
 
+        paint.color = resources.getColor(R.color.text_white)
         canvas.drawRect(startingX.toFloat(), 0f, (endingX * 0.7f).toInt().toFloat(), eYAll.toFloat(), paint)
 
         paint.color = resources.getColor(R.color.text_black)
@@ -493,6 +515,7 @@ class MainView(context: Context) : View(context) {
                 1000f * (widthWithPadding / paint.measureText(resources.getString(R.string.instructions))),
                 textSize / 1.5f
         )
+        logTextSize = instructionsTextSize * 0.6f
         gameOverTextSize = Math.min(
                 Math.min(
                         1000f * ((widthWithPadding - gridWidth * 2) / paint.measureText(resources.getString(R.string.game_over))),
