@@ -68,6 +68,7 @@ class MainGame(private val mContext: Context, private val mView: MainView) {
                         user = GameUser(auth.currentUser!!.uid, true, auth.currentUser!!.displayName!!, 0)
                     }
                     user.active = true
+                    score = user.score.toLong()
                     GameDatabase.updateUser(user)
                     setupListeners()
                 })
@@ -109,11 +110,6 @@ class MainGame(private val mContext: Context, private val mView: MainView) {
                 for (data in dataSnapshot.children) {
                     isUsersTurn =  data.getValue(GameUser::class.java)?.uid == user.uid
                     break
-                }
-                if (isUsersTurn) {
-                    Handler().postDelayed(Runnable {
-                        GameDatabase.queue.child("0").removeValue()
-                    }, 5000)
                 }
             }
 
