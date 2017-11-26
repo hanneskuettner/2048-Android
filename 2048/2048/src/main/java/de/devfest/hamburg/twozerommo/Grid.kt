@@ -3,10 +3,9 @@ package de.devfest.hamburg.twozerommo
 import java.util.ArrayList
 
 class Grid(sizeX: Int, sizeY: Int) {
-
-    val field: Array<Array<Tile?>>
-    val undoField: Array<Array<Tile?>>
-    private val bufferField: Array<Array<Tile?>>
+    val field: Array<Array<Tile?>> = Array(sizeX) { arrayOfNulls<Tile>(sizeY) }
+    val undoField: Array<Array<Tile?>> = Array(sizeX) { arrayOfNulls<Tile>(sizeY) }
+    private val bufferField: Array<Array<Tile?>> = Array(sizeX) { arrayOfNulls<Tile>(sizeY) }
 
     private val availableCells: MutableList<Cell>
         get() {
@@ -25,9 +24,6 @@ class Grid(sizeX: Int, sizeY: Int) {
         get() = availableCells.size >= 1
 
     init {
-        field = Array(sizeX) { arrayOfNulls<Tile>(sizeY) }
-        undoField = Array(sizeX) { arrayOfNulls<Tile>(sizeY) }
-        bufferField = Array(sizeX) { arrayOfNulls<Tile>(sizeY) }
         clearGrid()
         clearUndoGrid()
     }
@@ -129,6 +125,25 @@ class Grid(sizeX: Int, sizeY: Int) {
         for (xx in field.indices) {
             for (yy in 0 until field[0].size) {
                 undoField[xx][yy] = null
+            }
+        }
+    }
+
+
+    fun toMatrix(): Array<IntArray> {
+        val a = Array(field.size) { IntArray(field[0].size) }
+        for (xx in field.indices) {
+            for (yy in 0 until field[0].size) {
+                a[xx][yy] = field[xx][yy]!!.value
+            }
+        }
+        return a
+    }
+
+    fun fromMatrix(a: Array<IntArray>) {
+        for (xx in a.indices) {
+            for (yy in 0 until a[0].size) {
+                field[xx][yy] = Tile(xx, yy, a[xx][yy])
             }
         }
     }

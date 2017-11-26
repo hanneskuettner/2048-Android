@@ -2,6 +2,8 @@ package de.devfest.hamburg.twozerommo
 
 import android.content.Context
 import android.preference.PreferenceManager
+import de.devfest.hamburg.twozerommo.service.GameFunctionsService
+import de.devfest.hamburg.twozerommo.service.Move
 import java.util.*
 
 class MainGame(private val mContext: Context, private val mView: MainView) {
@@ -18,6 +20,7 @@ class MainGame(private val mContext: Context, private val mView: MainView) {
     var lastScore: Long = 0
     var isUsersTurn = true // TODO set up from firebase database
     var turnStartTime: Long = 0
+    var turnLastMoveIndex = 0
 
     private var bufferScore: Long = 0
 
@@ -62,6 +65,7 @@ class MainGame(private val mContext: Context, private val mView: MainView) {
     internal fun startTurn() {
         isUsersTurn = true
         turnStartTime = System.nanoTime()
+        GameFunctionsService.startTurn()
     }
 
     private fun addStartTiles() {
@@ -162,6 +166,7 @@ class MainGame(private val mContext: Context, private val mView: MainView) {
 
         prepareTiles()
 
+        var gainedScore = 0
         for (xx in traversalsX) {
             for (yy in traversalsY) {
                 val cell = Cell(xx, yy)
@@ -189,15 +194,10 @@ class MainGame(private val mContext: Context, private val mView: MainView) {
                                 SPAWN_ANIMATION_TIME, MOVE_ANIMATION_TIME, null)
 
                         // Update the score
+                        gainedScore += merged.value
                         score = score + merged.value
                         // TODO score update listener
                         highScore = Math.max(score, highScore)
-
-                        // The mighty 2048 tile
-                        if (merged.value >= winValue() && !gameWon()) {
-                            gameState = gameState + GAME_WIN // Set win state
-                            endGame()
-                        }
                     } else {
                         moveTile(tile, positions[0])
                         val extras = intArrayOf(xx, yy, 0)
@@ -215,6 +215,7 @@ class MainGame(private val mContext: Context, private val mView: MainView) {
             saveUndoState()
             addRandomTile()
             checkLose()
+            GameFunctionsService.move(Move(grid!!.toMatrix(), direction, gainedScore, turnLastMoveIndex++))
         }
         mView.resyncTime()
         mView.invalidate()
