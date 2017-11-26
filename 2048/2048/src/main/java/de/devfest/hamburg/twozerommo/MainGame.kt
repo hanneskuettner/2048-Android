@@ -303,9 +303,9 @@ class MainGame(private val mContext: Context, private val mView: MainView) {
             addRandomTile()
             checkLose()
             GameFunctionsService.move(Move(GameState(grid.toMatrix(), direction), gainedScore, turnLastMoveIndex++), user)
-                    ?.subscribe { t ->
+                    ?.subscribe({ t ->
                         Log.d(TAG, t.toString())
-                    }
+                    }, {err -> Log.e("NetworkError", err.message)})
         }
         mView.resyncTime()
         mView.invalidate()}
