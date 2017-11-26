@@ -13,11 +13,12 @@ import com.firebase.ui.auth.ResultCodes
 import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : AppCompatActivity() {
-    private val auth = FirebaseAuth.getInstance();
+    lateinit var auth: FirebaseAuth
     lateinit private var view: MainView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        auth = FirebaseAuth.getInstance()
         if (auth.currentUser != null) {
             setupGameUI(savedInstanceState)
         }

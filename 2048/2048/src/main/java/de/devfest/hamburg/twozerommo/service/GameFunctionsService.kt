@@ -1,6 +1,10 @@
 package de.devfest.hamburg.twozerommo.service
 
 import android.util.Log
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.android.gms.tasks.Task
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GetTokenResult
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -44,12 +48,12 @@ object GameFunctionsService {
 
     fun setup() {
         val mUser = FirebaseAuth.getInstance().getCurrentUser()
-        mUser.getToken(true)
-                .addOnCompleteListener(object : OnCompleteListener<GetTokenResult>() {
-                    fun onComplete(task: Task<GetTokenResult>) {
+        mUser?.getToken(true)
+                ?.addOnCompleteListener(object : OnCompleteListener<GetTokenResult> {
+                    override fun onComplete(task: Task<GetTokenResult>) {
                         if (task.isSuccessful()) {
                             val idToken = task.getResult().getToken()
-                            buildEndpoint(idToken)
+                            buildEndpoint(idToken ?: "")
                         } else {
                             Log.e("GAME", "Firebase Cloud service setup failed ${task.getException()}")
                         }
