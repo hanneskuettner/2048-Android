@@ -10,7 +10,12 @@ import android.view.KeyEvent
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.IdpResponse
 import com.firebase.ui.auth.ResultCodes
+import com.firebase.ui.auth.User
+import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
+import de.devfest.hamburg.twozerommo.service.GameDatabase
+import de.devfest.hamburg.twozerommo.service.GameFunctionsService
+import de.devfest.hamburg.twozerommo.service.GameUser
 
 class MainActivity : AppCompatActivity() {
     lateinit var auth: FirebaseAuth
@@ -20,6 +25,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         auth = FirebaseAuth.getInstance()
         if (auth.currentUser != null) {
+            GameFunctionsService.setup()
+
+            GameDatabase.updateUser(GameUser(auth.currentUser!!.uid, true, auth.currentUser!!.displayName!!, 0))
             setupGameUI(savedInstanceState)
         }
         firebaseSignIn()
@@ -42,6 +50,10 @@ class MainActivity : AppCompatActivity() {
 
             if (resultCode == ResultCodes.OK) {
                 Log.d("FirebaseAuth", "Authenticated user ${auth.currentUser?.displayName} with uid ${auth.currentUser?.uid}")
+                GameFunctionsService.setup()
+
+                GameDatabase.updateUser(GameUser(auth.currentUser!!.uid, true, auth.currentUser!!.displayName!!, 0))
+
                 setupGameUI(null)
             } else {
                 Log.e("FirebaseAuth", "Shit's fucked yo!")
@@ -91,7 +103,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        save()
+        if (auth.currentUser != null) {
+            save()
+        }
     }
 
     private fun save() {
@@ -127,7 +141,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        load()
     }
 
     private fun load() {

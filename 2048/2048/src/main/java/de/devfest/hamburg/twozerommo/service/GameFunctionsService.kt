@@ -15,7 +15,7 @@ import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 
 object GameFunctionsService {
-    val FIREBASE_FUNCTIONS_URL = ""
+    val FIREBASE_FUNCTIONS_URL = "https://us-central1-appfest-hamburg-2017.cloudfunctions.net/"
 
     private var retrofit: Retrofit? = null
     private var gameFunctionsEndpoint: IGameEndpoint? = null
@@ -47,18 +47,17 @@ object GameFunctionsService {
     }
 
     fun setup() {
-        val mUser = FirebaseAuth.getInstance().getCurrentUser()
-        mUser?.getToken(true)
-                ?.addOnCompleteListener(object : OnCompleteListener<GetTokenResult> {
-                    override fun onComplete(task: Task<GetTokenResult>) {
-                        if (task.isSuccessful()) {
-                            val idToken = task.getResult().getToken()
-                            buildEndpoint(idToken ?: "")
-                        } else {
-                            Log.e("GAME", "Firebase Cloud service setup failed ${task.getException()}")
-                        }
-                    }
-                })
+        val user = FirebaseAuth.getInstance().currentUser
+        user?.getToken(true)
+            ?.addOnCompleteListener { task ->
+                if (task.isSuccessful()) {
+                    val idToken = task.result.token
+                    if (idToken != null)
+                        buildEndpoint(idToken)
+                } else {
+                    Log.e("GAME", "Firebase Cloud service setup failed ${task.getException()}")
+                }
+            }
     }
 
     fun startTurn(): Observable<ResponseBody>? {
