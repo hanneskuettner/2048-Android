@@ -69,5 +69,5 @@ object GameFunctionsService {
             ?.observeOn(AndroidSchedulers.mainThread())
     }
 
-    
+
 }
