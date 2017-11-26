@@ -20,7 +20,8 @@ class MainGame(private val mContext: Context, private val mView: MainView) {
     private var bufferGameState = GAME_NORMAL
     internal val numSquaresX = 4
     internal val numSquaresY = 4
-    var grid: Grid? = null
+    lateinit var grid: Grid
+    private var isGridSetUp = false
     lateinit var aGrid: AnimationGrid
     var canUndo: Boolean = false
     var score: Long = 0
@@ -89,13 +90,13 @@ class MainGame(private val mContext: Context, private val mView: MainView) {
     }
 
     fun newGame() {
-        if (grid == null) {
+       // if (grid == null) {
             grid = Grid(numSquaresX, numSquaresY)
-        } else {
-            prepareUndoState()
-            saveUndoState()
-            grid?.clearGrid()
-        }
+        //} else {
+//            prepareUndoState()
+//            saveUndoState()
+//            grid?.clearGrid()
+//        }
         aGrid = AnimationGrid(numSquaresX, numSquaresY)
         highScore = getHighScore()
         if (score >= highScore) {
@@ -109,6 +110,7 @@ class MainGame(private val mContext: Context, private val mView: MainView) {
         mView.resyncTime()
         mView.invalidate()
         isUsersTurn = true // TODO Remove
+        isGridSetUp = true
     }
 
     internal fun startTurn() {
@@ -202,78 +204,76 @@ class MainGame(private val mContext: Context, private val mView: MainView) {
     }
 
     fun move(direction: Int, animateOnly: Boolean = false) {
-        aGrid.cancelAnimations()
-        // 0: up, 1: right, 2: down, 3: left
-        if (!isActive) {
-            return
-        }
-        prepareUndoState()
-        val vector = getVector(direction)
-        val traversalsX = buildTraversalsX(vector)
-        val traversalsY = buildTraversalsY(vector)
-        var moved = false
+        if (isGridSetUp) {
+            aGrid.cancelAnimations()
+            // 0: up, 1: right, 2: down, 3: left
+            if (!isActive) {
+                return
+            }
+            prepareUndoState()
+            val vector = getVector(direction)
+            val traversalsX = buildTraversalsX(vector)
+            val traversalsY = buildTraversalsY(vector)
+            var moved = false
 
-        prepareTiles()
+            prepareTiles()
 
-        var gainedScore = 0
-        for (xx in traversalsX) {
-            for (yy in traversalsY) {
-                val cell = Cell(xx, yy)
-                val tile = grid?.getCellContent(cell)
+            var gainedScore = 0
+            for (xx in traversalsX) {
+                for (yy in traversalsY) {
+                    val cell = Cell(xx, yy)
+                    val tile = grid?.getCellContent(cell)
 
-                if (tile != null) {
-                    val positions = findFarthestPosition(cell, vector)
-                    val next = grid?.getCellContent(positions[1])
+                    if (tile != null) {
+                        val positions = findFarthestPosition(cell, vector)
+                        val next = grid?.getCellContent(positions[1])
 
-                    if (next != null && next.value == tile.value && next.mergedFrom == null) {
-                        val merged = Tile(positions[1], tile.value * 2)
-                        val temp = arrayOf(tile, next)
-                        merged.mergedFrom = temp
+                        if (next != null && next.value == tile.value && next.mergedFrom == null) {
+                            val merged = Tile(positions[1], tile.value * 2)
+                            val temp = arrayOf(tile, next)
+                            merged.mergedFrom = temp
 
-                        grid?.insertTile(merged)
-                        grid?.removeTile(tile)
+                            grid?.insertTile(merged)
+                            grid?.removeTile(tile)
 
-                        // Converge the two tiles' positions
-                        tile.updatePosition(positions[1])
+                            // Converge the two tiles' positions
+                            tile.updatePosition(positions[1])
 
-                        val extras = intArrayOf(xx, yy)
-                        aGrid.startAnimation(merged.x, merged.y, MOVE_ANIMATION,
-                                MOVE_ANIMATION_TIME, 0, extras) //Direction: 0 = MOVING MERGED
-                        aGrid.startAnimation(merged.x, merged.y, MERGE_ANIMATION,
-                                SPAWN_ANIMATION_TIME, MOVE_ANIMATION_TIME, null)
+                            val extras = intArrayOf(xx, yy)
+                            aGrid.startAnimation(merged.x, merged.y, MOVE_ANIMATION,
+                                    MOVE_ANIMATION_TIME, 0, extras) //Direction: 0 = MOVING MERGED
+                            aGrid.startAnimation(merged.x, merged.y, MERGE_ANIMATION,
+                                    SPAWN_ANIMATION_TIME, MOVE_ANIMATION_TIME, null)
 
-                        if (animateOnly) {
-                            // Update the score
-                            gainedScore += merged.value
-                            score = score + merged.value
-                            // TODO score update listener
-                            highScore = Math.max(score, highScore)
-                        }
+                        if (animateOnly) {// Update the score
+                        gainedScore += merged.value
+                        score = score + merged.value
+                        // TODO score update listener
+                        highScore = Math.max(score, highScore)}
                     } else {
                         moveTile(tile, positions[0])
                         val extras = intArrayOf(xx, yy, 0)
                         aGrid.startAnimation(positions[0].x, positions[0].y, MOVE_ANIMATION, MOVE_ANIMATION_TIME, 0, extras) //Direction: 1 = MOVING NO MERGE
                     }
 
-                    if (!positionsEqual(cell, tile)) {
-                        moved = true
+                        if (!positionsEqual(cell, tile)) {
+                            moved = true
+                        }
                     }
                 }
             }
-        }
 
-        if (moved && !animateOnly) {
+        if (moved&& !animateOnly) {
             saveUndoState()
             addRandomTile()
             checkLose()
-
-            GameFunctionsService.move(Move(GameState(grid!!.toMatrix(), direction), gainedScore, turnLastMoveIndex++), user)
+            GameFunctionsService.move(Move(GameState(grid.toMatrix(), direction), gainedScore, turnLastMoveIndex++), user)
                     ?.subscribe { t ->
                         Log.d(TAG, t.toString())
                     }
         }
         mView.resyncTime()
-        mView.invalidate()
+        mView.invalidate()}
     }
 
     private fun checkLose() {

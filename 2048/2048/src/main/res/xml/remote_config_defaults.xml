@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- START xml_defaults -->
+<defaultsMap>
+    <entry>
+        <key>screen_background</key>
+        <value>#faf8ef</value>
+    </entry>
+    <entry>
+        <key>game_board_background</key>
+        <value>#bbada0</value>
+    </entry>
+    <entry>
+        <key>empty_cell_background</key>
+        <value>#d6cdc4</value>
+    </entry>
+
+    <entry>
+        <key>cell_value_2_background</key>
+        <value>#eee4da</value>
+    </entry>
+    <entry>
+        <key>cell_value_4_background</key>
+        <value>#ede0c8</value>
+    </entry>
+    <entry>
+        <key>cell_value_8_background</key>
+        <value>#f2b179</value>
+    </entry>
+    <entry>
+        <key>cell_value_16_background</key>
+        <value>#f59563</value>
+    </entry>
+    <entry>
+        <key>cell_value_32_background</key>
+        <value>#f67c5f</value>
+    </entry>
+    <entry>
+        <key>cell_value_64_background</key>
+        <value>#f65e3b</value>
+    </entry>
+    <entry>
+        <key>cell_value_128_background</key>
+        <value>#edcf72</value>
+    </entry>
+    <entry>
+        <key>cell_value_256_background</key>
+        <value>#edcc61</value>
+    </entry>
+    <entry>
+        <key>cell_value_512_background</key>
+        <value>#edc850</value>
+    </entry>
+    <entry>
+        <key>cell_value_1024_background</key>
+        <value>#edc53f</value>
+    </entry>
+    <entry>
+        <key>cell_value_2048_background</key>
+        <value>#edc22e</value>
+    </entry>
+    <entry>
+        <key>cell_value_4096_background</key>
+        <value>#3c3a32</value>
+    </entry>
+
+</defaultsMap>
+    <!-- END xml_defaults -->
