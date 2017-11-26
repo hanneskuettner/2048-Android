@@ -5,12 +5,25 @@ import android.os.Bundle
 import android.preference.PreferenceManager
 import android.support.v7.app.AppCompatActivity
 import android.view.KeyEvent
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : AppCompatActivity() {
+    private val auth = FirebaseAuth.getInstance();
     lateinit private var view: MainView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (auth.currentUser != null) {
+            setupGameUI(savedInstanceState)
+        }
+        firebaseSignIn()
+    }
+
+    private fun firebaseSignIn() {
+        // val providers =
+    }
+
+    private fun setupGameUI(savedInstanceState: Bundle?) {
         view = MainView(this)
 
         val settings = PreferenceManager.getDefaultSharedPreferences(this)
