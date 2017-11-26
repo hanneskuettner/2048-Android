@@ -1,19 +1,19 @@
 package de.devfest.hamburg.twozerommo
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.Typeface
+import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.util.Log
 import android.view.View
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
+import java.util.*
 
-import java.util.ArrayList
 
 class MainView(context: Context) : View(context) {
     val numCellTypes = 21
+    val remoteConfig = FirebaseRemoteConfig.getInstance()
     private val bitmapCell = arrayOfNulls<BitmapDrawable>(numCellTypes)
     val game: MainGame
     //Internal variables
@@ -66,6 +66,8 @@ class MainView(context: Context) : View(context) {
     //score variables
     private val scoreUpdates = ArrayList<ScoreUpdate>()
 
+    data class DrawableCellProps(val drawableRes: Int, val color: Int)
+
     private val cellRectangleIds: IntArray
         get() {
             val cellRectangleIds = IntArray(numCellTypes)
@@ -87,8 +89,10 @@ class MainView(context: Context) : View(context) {
             return cellRectangleIds
         }
 
-    init {
+    var cellRectangles: Array<DrawableCellProps> = emptyArray()
 
+    init {
+        setupRemoteConfig()
         //Loading resources
         game = MainGame(context, this)
         try {
@@ -107,6 +111,52 @@ class MainView(context: Context) : View(context) {
         setOnTouchListener(InputListener(this))
 
         game.newGame()
+    }
+
+    private fun resetCellRectangles() {
+        cellRectangles = arrayOf(
+                DrawableCellProps(R.drawable.cell_rectangle, Color.parseColor(remoteConfig.getString(remoteTheme[0]))),
+                DrawableCellProps(R.drawable.cell_rectangle_2, Color.parseColor(remoteConfig.getString(remoteTheme[1]))),
+                DrawableCellProps(R.drawable.cell_rectangle_4, Color.parseColor(remoteConfig.getString(remoteTheme[2]))),
+                DrawableCellProps(R.drawable.cell_rectangle_8, Color.parseColor(remoteConfig.getString(remoteTheme[3]))),
+                DrawableCellProps(R.drawable.cell_rectangle_16, Color.parseColor(remoteConfig.getString(remoteTheme[4]))),
+                DrawableCellProps(R.drawable.cell_rectangle_32, Color.parseColor(remoteConfig.getString(remoteTheme[5]))),
+                DrawableCellProps(R.drawable.cell_rectangle_64, Color.parseColor(remoteConfig.getString(remoteTheme[6]))),
+                DrawableCellProps(R.drawable.cell_rectangle_128, Color.parseColor(remoteConfig.getString(remoteTheme[7]))),
+                DrawableCellProps(R.drawable.cell_rectangle_256, Color.parseColor(remoteConfig.getString(remoteTheme[8]))),
+                DrawableCellProps(R.drawable.cell_rectangle_512, Color.parseColor(remoteConfig.getString(remoteTheme[9]))),
+                DrawableCellProps(R.drawable.cell_rectangle_1024, Color.parseColor(remoteConfig.getString(remoteTheme[10]))),
+                DrawableCellProps(R.drawable.cell_rectangle_2048, Color.parseColor(remoteConfig.getString(remoteTheme[11]))),
+                DrawableCellProps(R.drawable.cell_rectangle_4096, Color.parseColor(remoteConfig.getString(remoteTheme[12]))),
+                DrawableCellProps(R.drawable.cell_rectangle_4096, Color.parseColor(remoteConfig.getString(remoteTheme[12]))),
+                DrawableCellProps(R.drawable.cell_rectangle_4096, Color.parseColor(remoteConfig.getString(remoteTheme[12]))),
+                DrawableCellProps(R.drawable.cell_rectangle_4096, Color.parseColor(remoteConfig.getString(remoteTheme[12]))),
+                DrawableCellProps(R.drawable.cell_rectangle_4096, Color.parseColor(remoteConfig.getString(remoteTheme[12]))),
+                DrawableCellProps(R.drawable.cell_rectangle_4096, Color.parseColor(remoteConfig.getString(remoteTheme[12]))),
+                DrawableCellProps(R.drawable.cell_rectangle_4096, Color.parseColor(remoteConfig.getString(remoteTheme[12]))),
+                DrawableCellProps(R.drawable.cell_rectangle_4096, Color.parseColor(remoteConfig.getString(remoteTheme[12]))),
+                DrawableCellProps(R.drawable.cell_rectangle_4096, Color.parseColor(remoteConfig.getString(remoteTheme[12])))
+        )
+    }
+
+    private fun setupRemoteConfig() {
+        val configSettings = FirebaseRemoteConfigSettings.Builder()
+                .setDeveloperModeEnabled(BuildConfig.DEBUG)
+                .build()
+        remoteConfig.setConfigSettings(configSettings)
+        remoteConfig.setDefaults(R.xml.remote_config_defaults)
+        resetCellRectangles()
+
+        remoteConfig.fetch().addOnCompleteListener {
+            if (it.isSuccessful) {
+                Log.d("RemoteConfig", "Fetched remote data")
+                remoteConfig.activateFetched()
+                resetCellRectangles()
+                invalidate(startingX, startingY, endingX, endingY)
+            } else {
+                Log.e("RemoteConfig", "Failed to fetch remote config data")
+            }
+        }
     }
 
     public override fun onDraw(canvas: Canvas) {
@@ -459,10 +509,17 @@ class MainView(context: Context) : View(context) {
             paint.textSize = tempTextSize
             val bitmap = Bitmap.createBitmap(cellSize, cellSize, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(bitmap)
-            drawDrawable(canvas, getDrawable(cellRectangleIds[xx]), 0, 0, cellSize, cellSize)
+            drawDrawable(canvas, getThemedTile(xx), 0, 0, cellSize, cellSize)
             drawCellText(canvas, value)
             bitmapCell[xx] = BitmapDrawable(resources, bitmap)
         }
+    }
+
+    private fun getThemedTile(tilePosition: Int): Drawable {
+        val tile = cellRectangles[tilePosition]
+        val drawable = getDrawable(tile.drawableRes)
+        drawable.setTint(tile.color)
+        return drawable
     }
 
     private fun createOverlays() {
@@ -567,6 +624,21 @@ class MainView(context: Context) : View(context) {
         private val TAG = MainView::class.java.simpleName
         private val MERGING_ACCELERATION = (-0.5).toFloat()
         private val INITIAL_VELOCITY = (1 - MERGING_ACCELERATION) / 4
+
+        private val remoteTheme = listOf(
+                "empty_cell_background",
+                "cell_value_2_background",
+                "cell_value_4_background",
+                "cell_value_8_background",
+                "cell_value_16_background",
+                "cell_value_32_background",
+                "cell_value_64_background",
+                "cell_value_128_background",
+                "cell_value_256_background",
+                "cell_value_512_background",
+                "cell_value_1024_background",
+                "cell_value_2048_background",
+                "cell_value_4096_background")
 
         private fun log2(n: Int): Int {
             if (n <= 0) throw IllegalArgumentException()
