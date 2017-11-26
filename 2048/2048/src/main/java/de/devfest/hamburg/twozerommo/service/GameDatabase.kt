@@ -15,6 +15,7 @@ object GameDatabase {
     var users = firestore.collection("users")
 
     var game = realDb.getReference("game")
+    var queue = realDb.getReference("queue")
 
 
     init {

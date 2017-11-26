@@ -357,6 +357,7 @@ class MainView(context: Context) : View(context) {
     }
 
     private fun drawRemainingTime(canvas: Canvas) {
+        return
         paint.textSize = instructionsTextSize
         paint.textAlign = Paint.Align.CENTER
 
